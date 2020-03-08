@@ -11,6 +11,10 @@
 #define PERFECT_COMPRESSED_HASH_INCLUDED
 
 #include "hashes/config.hpp"
+#include "utility/is_unique.hpp"
+#include "utility/smallest_difference.hpp"
+#include "utility/find_modulo.hpp"
+#include "sort/radix_sort.hpp"
 
 HASHES_NAMESPACE_BEGIN
 
@@ -70,69 +74,21 @@ private:
 };
 
 
-template<typename UIntegral,typename Iterator>
-constexpr UIntegral find_smallest_difference_unsorted (Iterator begin,Iterator end) 
-{
-    UIntegral rv=std::numeric_limits<UIntegral>::max();
-    while(begin!=end){
-        auto next = std::next(begin);
-        while(next!=end){
-            if(*begin< *next){
-                rv =  rv>*next-*begin ? *next-*begin : rv;
-            }
-            else{
-                rv =  rv>*begin-*next ? *begin-*next : rv;
-            }
-            ++next;
-        }
-        ++begin;
-    }
-    return rv;
-}
-
-template<typename Iterator,typename BinaryPred>
-constexpr bool is_unique_unsorted (Iterator begin,Iterator end,BinaryPred op) 
-{
-    auto current = std::next(begin);
-    while(current!=end){
-        auto compare = begin;
-        while(compare!=end){
-            if(current!=compare&&op(*current,*compare)){
-                return false;
-            }
-            ++compare;
-        }
-        ++current;
-    }
-    return true;
-}
-
-template<typename UIntegral, typename Iterator,typename UnaryPred>
-constexpr UIntegral find_modulo(Iterator begin,Iterator end,UnaryPred op) 
-{
-    UIntegral modulo = std::distance(begin,end);
-    while(true){
-        if(is_unique_unsorted(begin,end,[modulo,op](UIntegral l,UIntegral r){return op(l)%modulo==op(r)%modulo;}))
-            return modulo;
-        else
-            ++modulo;
-    }
-}
 
 template<typename UIntegral, typename Iterator> 
 constexpr CompressedHash<UIntegral> create_perfect_compressed_hash(Iterator begin, Iterator end) 
 {
     auto comp = [](UIntegral lhs,UIntegral rhs){return lhs==rhs;};
-    if(!is_unique_unsorted(begin,end,comp)) // O(n2)
+    radix_sort(begin,end); // O(n)
+    if(!is_unique_sorted(begin,end,comp)) // O(n)
         throw std::runtime_error("You have to give a list of unique numbers to create_compressed_hash()");
 
-    UIntegral division_value = find_smallest_difference_unsorted<UIntegral> (begin,end); // O(n2)
-    UIntegral modulo = find_modulo<UIntegral>(begin,end,[division_value](UIntegral l){return l/division_value;}); // O(n3)
-    UIntegral modulo2 = find_modulo<UIntegral>(begin,end,[division_value,modulo](UIntegral l){return (l/division_value)%modulo;}); // O(n3)
+    UIntegral division_value = find_smallest_difference_sorted<UIntegral> (begin,end); // O(n)
+    UIntegral modulo = find_modulo_sorted<UIntegral>(begin,end,division_value); // O(n2*k)
+    UIntegral modulo2 = find_modulo_sorted<UIntegral>(begin,end,division_value); // O(n2*k)
     // benchmark gives O(n3)
-    // changes: sort vector to get O(nlog(n)),O(n),O(n)
-    // create copy in find modulo, assign value, sort, unique -> (O(n),  O(nlog(n)), O(n))*O(n)
     // try to use binary search for modulo
+    // try adding fast_hash befor the rest to reduce range of numbers
     return CompressedHash<UIntegral>{division_value,modulo,modulo2,static_cast<UIntegral>(std::distance(begin,end))};
 }
 

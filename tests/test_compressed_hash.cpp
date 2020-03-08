@@ -28,6 +28,18 @@ TEST(Compressed_hash,FewNumbers){
     ASSERT_EQ(fun(2),2);
     ASSERT_EQ(fun(3),3);
     ASSERT_EQ(fun(14),4);
+
+    std::array<size_t,5> arr{14,1,3,0,2};
+    auto fun_rt =create_perfect_compressed_hash<size_t>(arr.begin(),arr.end());
+    ASSERT_EQ(fun_rt.size(),5);
+    ASSERT_EQ(fun_rt.max(),4);
+    ASSERT_EQ(fun_rt.division(),1);
+    ASSERT_EQ(fun_rt.modulo1(),5);
+    ASSERT_EQ(fun_rt.modulo2(),5);
+    ASSERT_EQ(fun_rt.density(),1);
+    for(auto itr : arr){
+        ASSERT_EQ(fun(itr),fun_rt(itr));
+    }
 }
 
 
@@ -56,6 +68,17 @@ TEST(Compressed_hash,MoreNumbers){
     std::sort( hashes.begin(), hashes.end() );
     auto newend=std::unique(hashes.begin(), hashes.end() );
     ASSERT_EQ( hashes.end() ,newend);
+
+    auto fun_rt =create_perfect_compressed_hash<size_t>(arr.begin(),arr.end());
+
+    otr=hashes.begin();
+    for(auto itr : arr){
+        *otr=fun_rt(itr);
+        ++otr;
+    }
+    std::sort( hashes.begin(), hashes.end() );
+    newend=std::unique(hashes.begin(), hashes.end() );
+    ASSERT_EQ( hashes.end() ,newend);
 }
 
 
@@ -81,12 +104,28 @@ TEST(Compressed_hash,EvenDistribution){
     std::array<size_t,20> hashes;
     auto otr=hashes.begin();
     for(auto itr : arr){
-        std::cout<<"hash("<<itr<<") = "<<fun(itr)<<"\n";
+       // std::cout<<"hash("<<itr<<") = "<<fun(itr)<<"\n";
         *otr=fun(itr);
         ++otr;
     }
 
     std::sort( hashes.begin(), hashes.end() );
     auto newend=std::unique(hashes.begin(), hashes.end() );
+    ASSERT_EQ( hashes.end() ,newend);
+
+    auto fun_rt =create_perfect_compressed_hash<size_t>(arr.begin(),arr.end());
+
+    std::cout<<"RT hash.size() = "<<fun_rt.size()<<"\n";
+    std::cout<<"RT hash.division() = "<<fun_rt.division()<<"\n";
+    std::cout<<"RT hash.modulo1() = "<<fun_rt.modulo1()<<"\n";
+    std::cout<<"RT hash.modulo2() = "<<fun_rt.modulo2()<<"\n";
+    std::cout<<"RT hash.density() = "<<fun_rt.density()<<"\n";
+    otr=hashes.begin();
+    for(auto itr : arr){
+        *otr=fun_rt(itr);
+        ++otr;
+    }
+    std::sort( hashes.begin(), hashes.end() );
+    newend=std::unique(hashes.begin(), hashes.end() );
     ASSERT_EQ( hashes.end() ,newend);
 }

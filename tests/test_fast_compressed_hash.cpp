@@ -27,6 +27,20 @@ TEST(Fast_compressed_hash,FewNumbers){
     ASSERT_EQ(fun(2),2);
     ASSERT_EQ(fun(3),3);
     ASSERT_EQ(fun(14),6);
+
+    std::array<size_t,5> arr{14,1,3,0,2};
+    auto fun_rt =create_fast_perfect_compressed_hash<size_t>(arr.begin(),arr.end());
+    ASSERT_EQ(fun_rt.size(),8);
+    ASSERT_EQ(fun_rt.max(),7);
+    ASSERT_EQ(fun_rt.modulo(),8);
+    ASSERT_EQ(fun_rt.division(),1);
+    ASSERT_EQ(fun_rt.density(),5.0/8.0);
+    
+    ASSERT_EQ(fun_rt(0),0);
+    ASSERT_EQ(fun_rt(1),1);
+    ASSERT_EQ(fun_rt(2),2);
+    ASSERT_EQ(fun_rt(3),3);
+    ASSERT_EQ(fun_rt(14),6);
 }
 
 
@@ -53,6 +67,21 @@ TEST(Fast_compressed_hash,MoreNumbers){
 
     std::sort( hashes.begin(), hashes.end() );
     auto newend=std::unique(hashes.begin(), hashes.end() );
+    ASSERT_EQ( hashes.end() ,newend);
+
+    auto fun_rt =create_fast_perfect_compressed_hash<size_t>(arr.begin(),arr.end());
+    ASSERT_EQ(fun_rt.division(),1);
+    ASSERT_LT(fun_rt.size(),1025);
+    ASSERT_LT(fun_rt.max(),1024);
+    ASSERT_GT(fun_rt.density(),7.0/1024.0);
+
+    otr=hashes.begin();
+    for(auto itr : arr){
+        *otr=fun_rt(itr);
+        ++otr;
+    }
+    std::sort( hashes.begin(), hashes.end() );
+    newend=std::unique(hashes.begin(), hashes.end() );
     ASSERT_EQ( hashes.end() ,newend);
 }
 
@@ -86,4 +115,12 @@ TEST(Fast_compressed_hash,EvenDistribution){
     std::sort( hashes.begin(), hashes.end() );
     auto newend=std::unique(hashes.begin(), hashes.end() );
     ASSERT_EQ( hashes.end() ,newend);
+
+    auto fun_rt =create_fast_perfect_compressed_hash<size_t>(arr.begin(),arr.end());
+    ASSERT_EQ(fun.size(),fun_rt.size());
+    ASSERT_EQ(fun.max(),fun_rt.max());
+    ASSERT_EQ(fun.density(),fun_rt.density());
+    for(auto itr : arr){
+        ASSERT_EQ(fun(itr),fun_rt(itr));
+    }
 }

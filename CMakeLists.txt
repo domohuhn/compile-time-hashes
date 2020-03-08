@@ -56,6 +56,7 @@ if(HASHES_BUILD_TESTS)
 			tests/test_fnv1a.cpp
 			tests/test_murmur2.cpp
 			tests/test_hashed_strings.cpp
+			tests/test_sort.cpp
 			tests/test_main.cpp
 		)
 
@@ -90,6 +91,7 @@ if(HASHES_BUILD_BENCHMAKRS)
 			benchmark/bench_compressed_hash.cpp
 			benchmark/bench_perfect_hash_generation.cpp
 			benchmark/bench_hashes.cpp
+			benchmark/bench_sort.cpp
 			benchmark/bench_main.cpp
 		)
 		target_link_libraries(bench_hashes PRIVATE benchmark domohuhn::hashes)

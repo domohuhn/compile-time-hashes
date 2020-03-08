@@ -18,7 +18,7 @@ extern volatile size_t result;
 
 static std::vector<size_t> vec{};
 
-bool init_data()
+static bool init_data()
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -80,5 +80,5 @@ void BM_Create_perfect_hash(benchmark::State& state) {
         }
     }
 }
-BENCHMARK(BM_Create_perfect_hash)->RangeMultiplier(2)->Range(4, 1024)->Complexity();
+BENCHMARK(BM_Create_perfect_hash)->RangeMultiplier(2)->Range(4, 16*1024)->Complexity();
 

@@ -12,6 +12,10 @@
 
 #include "hashes/config.hpp"
 #include "hashes/perfect_compressed_hash.hpp"
+#include "utility/log2.hpp"
+#include "utility/is_unique.hpp"
+#include "utility/smallest_difference.hpp"
+#include "sort/radix_sort.hpp"
 
 HASHES_NAMESPACE_BEGIN
 
@@ -65,68 +69,19 @@ private:
 };
 
 
-template<typename UIntegral>
-constexpr UIntegral is_power_of_two(UIntegral i) {
-    return i & (i-1) == 0;
-}
-
-template<typename UIntegral>
-constexpr UIntegral log_largest_power_of_two_smaller_than(UIntegral n) 
-{ 
-    for (UIntegral i=0; i<8*sizeof(UIntegral)-1; ++i) 
-    {
-        if (UIntegral(1)<<(i+1) > n)
-        { 
-            return i;
-        }
-    }
-    return 0; 
-}
-
-
-template<typename UIntegral>
-constexpr UIntegral log_smallest_power_of_two_larger_than(UIntegral n) 
-{ 
-    for (UIntegral i=8*sizeof(UIntegral)-1; i>=1; --i) 
-    {
-        if (UIntegral(1)<<(i-1) < n)
-        {
-            return i;
-        }
-    }
-    return 1; 
-}
-
-
-template<typename UIntegral, typename Iterator,typename UnaryPred>
-constexpr UIntegral find_modulo_pow2(Iterator begin,Iterator end,UnaryPred op) 
-{
-    UIntegral log_modulo = log_smallest_power_of_two_larger_than(std::distance(begin,end));
-    while(true){
-        auto mod = UIntegral(1)<<log_modulo;
-        if(is_unique_unsorted(begin,end,[mod,op](UIntegral l,UIntegral r){return op(l)%mod==op(r)%mod;}))
-            return mod;
-        else
-            ++log_modulo;
-    }
-}
-
-
 template<typename UIntegral, typename Iterator> 
-constexpr FastCompressedHash<UIntegral> create_fast_perfect_compressed_hash(Iterator begin, Iterator end) 
+FastCompressedHash<UIntegral> create_fast_perfect_compressed_hash(Iterator begin, Iterator end) 
 {
     constexpr auto comp = [](UIntegral lhs,UIntegral rhs){return lhs==rhs;};
-
-    if(!is_unique_unsorted(begin,end,comp)) // O(n2)
+    radix_sort(begin,end); // O(n)
+    if(!is_unique_sorted(begin,end,comp)) // O(n)
         throw std::runtime_error("You have to give a list of unique numbers to create_compressed_hash()");
 
-    UIntegral division_value = find_smallest_difference_unsorted<UIntegral> (begin,end); // O(n2)
-    UIntegral fast_division_value = log_largest_power_of_two_smaller_than(division_value); // const
-    UIntegral modulo = find_modulo_pow2<UIntegral>(begin,end,[fast_division_value](UIntegral l){return l>>fast_division_value;}); // O(k*n2)
-    // benchmark gives O(n2)
-    // changes: sort vector to get O(nlog(n)),O(n),O(n)
-    // create copy in find modulo, assign value, sort, unique -> (O(n),  O(nlog(n)), O(n))*O(1)
-    return FastCompressedHash<UIntegral>{fast_division_value,modulo-1,static_cast<UIntegral>(std::distance(begin,end))};
+    UIntegral division_value = find_smallest_difference_sorted<UIntegral> (begin,end); // O(n)
+    UIntegral bitshift = log_largest_power_of_two_smaller_than(division_value); // const
+    UIntegral bitmask = find_modulo_pow2_sorted<UIntegral>(begin,end,bitshift); // O(k*n)
+    // benchmark gives O(n)
+    return FastCompressedHash<UIntegral>{bitshift,bitmask-1,static_cast<UIntegral>(std::distance(begin,end))};
 }
 
 template<typename UIntegral, typename X> 
@@ -136,9 +91,9 @@ constexpr FastCompressedHash<UIntegral> create_fast_perfect_compressed_hash(X ar
     constexpr auto comp = [](UIntegral lhs,UIntegral rhs){return lhs==rhs;};
     static_assert(is_unique_unsorted(arr.begin(),arr.end(),comp),"You have to give a list of unique numbers to create_compressed_hash()");
 
-    constexpr UIntegral division_value = find_smallest_difference_unsorted<UIntegral> (arr.begin(),arr.end());
-    constexpr UIntegral fast_division_value = log_largest_power_of_two_smaller_than(division_value);
-    constexpr UIntegral modulo = find_modulo_pow2<UIntegral>(arr.begin(),arr.end(),[fast_division_value](UIntegral l){return l>>fast_division_value;});
+    UIntegral division_value = find_smallest_difference_unsorted<UIntegral> (arr.begin(),arr.end());
+    UIntegral fast_division_value = log_largest_power_of_two_smaller_than(division_value);
+    UIntegral modulo = find_modulo_pow2<UIntegral>(arr.begin(),arr.end(),[fast_division_value](UIntegral l){return l>>fast_division_value;});
     return FastCompressedHash<UIntegral>{fast_division_value,modulo-1,arr.size()};
 }
 

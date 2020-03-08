@@ -21,7 +21,7 @@ public:
     using value_t = rep;
     using operations_t = traits;
 
-    constexpr HashedStringView(std::string_view s) noexcept : m_hash{operations_t::hash(s)}, m_str{s.begin()} {}
+    constexpr HashedStringView(std::string_view s) noexcept : m_hash{operations_t::hash(s)}, m_str{std::move(s)} {}
     
     HashedStringView(const HashedStringView&) = default;
     HashedStringView(HashedStringView&&) = default;
@@ -45,10 +45,7 @@ public:
         return m_hash!=other.m_hash;
     }
 private:
-    /** Using a const char* here reduces the size from 24 byte (string_view) to 16 byte on 64 bit machines. 
-     * For 32 Bit machines it is 12 byte to 8 byte.
-     */
-    const char* m_str{};
+    std::string_view m_str{};
     value_t m_hash{0};
 };
 
