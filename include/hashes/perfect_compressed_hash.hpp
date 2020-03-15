@@ -89,6 +89,7 @@ constexpr CompressedHash<UIntegral> create_perfect_compressed_hash(Iterator begi
     // benchmark gives O(n3)
     // try to use binary search for modulo
     // try adding fast_hash befor the rest to reduce range of numbers
+    // idea for new hash: use ((x/a)&b)%c ... this should be possible in O(2) or at least be twice as fast.
     return CompressedHash<UIntegral>{division_value,modulo,modulo2,static_cast<UIntegral>(std::distance(begin,end))};
 }
 

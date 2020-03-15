@@ -1,4 +1,4 @@
-#fast_compressed hash
+#compressed hash
 #num		t_unopt[ns]	t_sorted[ns]
 4		900 			546			
 8		7843 			2556		

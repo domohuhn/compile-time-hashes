@@ -48,7 +48,7 @@ void BM_Sort_radix(benchmark::State& state) {
         radix_sort(begin,end);
     }
 }
-BENCHMARK(BM_Sort_radix)->RangeMultiplier(4)->Range(4, max_sorting_size)->Complexity();
+BENCHMARK(BM_Sort_radix)->RangeMultiplier(8)->Range(4, max_sorting_size)->Complexity();
 
 
 void BM_Sort(benchmark::State& state) {
@@ -66,4 +66,4 @@ void BM_Sort(benchmark::State& state) {
         std::sort(begin,end);
     }
 }
-BENCHMARK(BM_Sort)->RangeMultiplier(4)->Range(4, max_sorting_size)->Complexity();
+BENCHMARK(BM_Sort)->RangeMultiplier(8)->Range(4, max_sorting_size)->Complexity();

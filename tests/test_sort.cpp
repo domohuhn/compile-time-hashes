@@ -45,7 +45,7 @@ constexpr bool test_random_array_insertion_sort(){
 }
 
 constexpr bool test_sorted_array_radix_sort(){
-    auto sorted_arr=radix_sort(std::array<uint64_t,100>{0,1,2,3,4,5,6,7,8,9,
+    std::array<uint64_t,100> arr{0,1,2,3,4,5,6,7,8,9,
     10,11,12,13,14,15,16,17,18,19,
     20,21,22,23,24,25,26,27,28,29,
     30,31,32,33,34,35,36,37,38,39,
@@ -55,10 +55,14 @@ constexpr bool test_sorted_array_radix_sort(){
     70,71,72,73,74,75,76,77,78,79,
     80,81,82,83,84,85,86,87,88,89,
     90,91,92,93,94,95,96,97,98,99
-    });
+    };
+    for(auto &i : arr){
+        i*=1024*1024;
+    }
+    auto sorted_arr=radix_sort(arr);
     bool rv = true;
-    for(size_t i=0;i<10;++i){
-        if(i!=sorted_arr[i])
+    for(size_t i=0;i<100;++i){
+        if(1024*1024*i!=sorted_arr[i])
             rv=false;
     }
     return rv;
@@ -77,7 +81,8 @@ constexpr bool test_reversed_array_radix_sort(){
         10,11,12,13,14,15,16,17,18,19,
         9,8,7,6,5,4,3,2,1,0});
     bool rv = true;
-    for(size_t i=0;i<10;++i){
+    for(size_t i=0;i<100;++i){
+        //std::cout<<i<<" "<<sorted_arr[i]<<"\n";
         if(i!=sorted_arr[i])
             rv=false;
     }
@@ -98,7 +103,7 @@ constexpr bool test_random_array_radix_sort(){
     0,1,6,7,8,2,3,4,5,9
     });
     bool rv = true;
-    for(size_t i=0;i<10;++i){
+    for(size_t i=0;i<100;++i){
         if(i!=sorted_arr[i]){
             rv=false;
         }
